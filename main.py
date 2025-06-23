@@ -288,3 +288,28 @@ def otworz_panel_osob(nazwa_typu, typ_klasy, baza_danych):
     Button(okno, text=f"Edytuj {nazwa_typu.lower()}", command=edytuj).pack(pady=2)
 
     odswiez()
+
+def pokaz_liste_dostepnych_ksiegarni():
+    okno = Toplevel(root)
+    okno.title("Dostępne księgarnie do dodania")
+    okno.geometry("400x400")
+
+    listbox = Listbox(okno, selectmode=MULTIPLE, width=50)
+    listbox.pack(pady=10, padx=10, expand=True, fill=BOTH)
+
+    for nazwa in ksiegarnia_coords.keys():
+        listbox.insert(END, nazwa)
+
+    def dodaj_zaznaczone():
+        wybrane = listbox.curselection()
+        for idx in wybrane:
+            nazwa = listbox.get(idx)
+            if nazwa not in [k.nazwa for k in ksiegarnie]:
+                k = Ksiegarnia(nazwa)
+                ksiegarnie.append(k)
+                ksiegarnia_pracownicy[nazwa] = []
+                ksiegarnia_klienci[nazwa] = []
+        pokaz_ksiegarnie()
+        okno.destroy()
+
+    Button(okno, text="Dodaj zaznaczone", command=dodaj_zaznaczone).pack(pady=10)
