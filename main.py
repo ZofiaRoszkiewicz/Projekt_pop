@@ -153,3 +153,33 @@ def pokaz_wszystkich_klientow():
         lon = sum(o.longitude for o in wszystkie) / len(wszystkie)
         map_widget.set_position(lat, lon)
         map_widget.set_zoom(6)
+
+def dodaj_ksiegarnie_z_listy():
+    nazwa = entry_nazwa.get().strip()
+    if not nazwa or nazwa not in ksiegarnia_coords:
+        return
+    k = Ksiegarnia(nazwa)
+    ksiegarnie.append(k)
+    ksiegarnia_pracownicy[nazwa] = []
+    ksiegarnia_klienci[nazwa] = []
+    pokaz_ksiegarnie()
+    entry_nazwa.delete(0, END)
+
+def usun_ksiegarnie():
+    idx = listbox_ksiegarnie.curselection()
+    if not idx:
+        return
+    i = idx[0]
+    ks = ksiegarnie[i]
+    for p in ksiegarnia_pracownicy.get(ks.nazwa, []):
+        if p.marker:
+            p.marker.delete()
+    for k in ksiegarnia_klienci.get(ks.nazwa, []):
+        if k.marker:
+            k.marker.delete()
+    if ks.marker:
+        ks.marker.delete()
+    ksiegarnie.pop(i)
+    ksiegarnia_pracownicy.pop(ks.nazwa, None)
+    ksiegarnia_klienci.pop(ks.nazwa, None)
+    pokaz_ksiegarnie()
