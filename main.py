@@ -315,7 +315,7 @@ def pokaz_liste_dostepnych_ksiegarni():
     Button(okno, text="Dodaj zaznaczone", command=dodaj_zaznaczone).pack(pady=10)
 
 
-
+#stworzenie ramek
 root = Tk()
 root.title("Projekt systemu do zarządzania siecią księgarni i ich ofertą")
 root.geometry("1200x750")
