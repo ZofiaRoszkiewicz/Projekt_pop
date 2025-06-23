@@ -183,3 +183,93 @@ def usun_ksiegarnie():
     ksiegarnia_pracownicy.pop(ks.nazwa, None)
     ksiegarnia_klienci.pop(ks.nazwa, None)
     pokaz_ksiegarnie()
+
+def edytuj_ksiegarnie():
+    idx = listbox_ksiegarnie.curselection()
+    if not idx:
+        return
+    i = idx[0]
+    entry_nazwa.delete(0, END)
+    entry_nazwa.insert(0, ksiegarnie[i].nazwa)
+    button_dodaj.config(text="Zapisz", command=lambda: zapisz_edycje(i))
+
+def zapisz_edycje(i):
+    nowa_nazwa = entry_nazwa.get().strip()
+    if not nowa_nazwa:
+        return
+    if ksiegarnie[i].marker:
+        ksiegarnie[i].marker.delete()
+    stara = ksiegarnie[i].nazwa
+    ksiegarnie[i] = Ksiegarnia(nowa_nazwa)
+    ksiegarnia_pracownicy[nowa_nazwa] = ksiegarnia_pracownicy.pop(stara, [])
+    ksiegarnia_klienci[nowa_nazwa] = ksiegarnia_klienci.pop(stara, [])
+    pokaz_ksiegarnie()
+    entry_nazwa.delete(0, END)
+    button_dodaj.config(text="Dodaj księgarnię", command=dodaj_ksiegarnie_z_listy)
+
+def otworz_panel_osob(nazwa_typu, typ_klasy, baza_danych):
+    idx = listbox_ksiegarnie.curselection()
+    if not idx:
+        return
+    ks = ksiegarnie[idx[0]]
+    nazwa_ksiegarni = ks.nazwa
+    if nazwa_ksiegarni not in baza_danych:
+        baza_danych[nazwa_ksiegarni] = []
+
+    okno = Toplevel(root)
+    okno.title(f"{nazwa_typu.capitalize()} – {nazwa_ksiegarni.replace('_', ' ')}")
+    okno.geometry("400x550")
+
+    listbox = Listbox(okno, width=50, height=15)
+    listbox.pack()
+
+    def odswiez():
+        listbox.delete(0, END)
+        for i, o in enumerate(baza_danych[nazwa_ksiegarni]):
+            listbox.insert(i, f"{i+1}. {o.imie_nazwisko} – {o.miasto}")
+
+    def dodaj():
+        imie = entry_imie.get().strip()
+        miasto = entry_miasto.get().strip()
+        if not imie or not miasto:
+            return
+        osoba = typ_klasy(imie, miasto, nazwa_ksiegarni)
+        baza_danych[nazwa_ksiegarni].append(osoba)
+        odswiez()
+        entry_imie.delete(0, END)
+        entry_miasto.delete(0, END)
+
+    def usun():
+        sel = listbox.curselection()
+        if not sel:
+            return
+        o = baza_danych[nazwa_ksiegarni][sel[0]]
+        if o.marker:
+            o.marker.delete()
+        baza_danych[nazwa_ksiegarni].pop(sel[0])
+        odswiez()
+
+    def edytuj():
+        sel = listbox.curselection()
+        if not sel:
+            return
+        o = baza_danych[nazwa_ksiegarni][sel[0]]
+        entry_imie.delete(0, END)
+        entry_imie.insert(0, o.imie_nazwisko)
+        entry_miasto.delete(0, END)
+        entry_miasto.insert(0, o.miasto)
+        button_dodaj.config(text="Zapisz", command=lambda: zapisz(sel[0]))
+
+    def zapisz(i_o):
+        imie = entry_imie.get().strip()
+        miasto = entry_miasto.get().strip()
+        if not imie or not miasto:
+            return
+        o = baza_danych[nazwa_ksiegarni][i_o]
+        if o.marker:
+            o.marker.delete()
+        baza_danych[nazwa_ksiegarni][i_o] = typ_klasy(imie, miasto, nazwa_ksiegarni)
+        odswiez()
+        entry_imie.delete(0, END)
+        entry_miasto.delete(0, END)
+        button_dodaj.config(text=f"Dodaj {nazwa_typu.lower()}", command=dodaj)
