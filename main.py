@@ -1,3 +1,4 @@
+
 from tkinter import *
 import tkintermapview
 import requests
@@ -274,7 +275,7 @@ def otworz_panel_osob(nazwa_typu, typ_klasy, baza_danych):
         entry_miasto.delete(0, END)
         button_dodaj.config(text=f"Dodaj {nazwa_typu.lower()}", command=dodaj)
 
-   Label(okno, text="Imię i nazwisko:").pack()
+    Label(okno, text="Imię i nazwisko:").pack()
     entry_imie = Entry(okno, width=40)
     entry_imie.pack()
 
@@ -313,3 +314,42 @@ def pokaz_liste_dostepnych_ksiegarni():
         okno.destroy()
 
     Button(okno, text="Dodaj zaznaczone", command=dodaj_zaznaczone).pack(pady=10)
+
+
+#okna zarządzania
+root = Tk()
+root.title("Projekt systemu do zarządzania siecią księgarni i ich ofertą")
+root.geometry("1200x750")
+
+ramka_lista = Frame(root)
+ramka_lista.pack(side=LEFT, fill=Y, padx=10, pady=10)
+
+Label(ramka_lista, text="Lista księgarni").pack()
+listbox_ksiegarnie = Listbox(ramka_lista, width=40, height=20)
+listbox_ksiegarnie.pack()
+
+
+Button(ramka_lista, text="Wybierz z listy dostępnych księgarni", command=pokaz_liste_dostepnych_ksiegarni).pack(pady=2)
+Button(ramka_lista, text="Pokaż na mapie", command=pokaz_na_mapie).pack(pady=2)
+Button(ramka_lista, text="Pokaż wszystkie księgarnie", command=pokaz_wszystkie_ksiegarnie_na_mapie).pack(pady=2)
+Button(ramka_lista, text="Pracownicy", command=lambda: otworz_panel_osob("pracownik", Pracownik, ksiegarnia_pracownicy)).pack(pady=2)
+Button(ramka_lista, text="Klienci", command=lambda: otworz_panel_osob("klient", Klient, ksiegarnia_klienci)).pack(pady=2)
+Button(ramka_lista, text="Pokaż wszystkich pracowników", command=pokaz_wszystkich_pracownikow).pack(pady=2)
+Button(ramka_lista, text="Pokaż wszystkich klientów", command=pokaz_wszystkich_klientow).pack(pady=2)
+Button(ramka_lista, text="Usuń księgarnię", command=usun_ksiegarnie).pack(pady=2)
+
+Label(ramka_lista, text="Edytuj księgarnię").pack(pady=5)
+entry_nazwa = Entry(ramka_lista, width=40)
+entry_nazwa.pack()
+button_dodaj = Button(ramka_lista, text="Zapisz zmiany", command=dodaj_ksiegarnie_z_listy)
+button_dodaj.pack(pady=5)
+
+
+
+map_widget = tkintermapview.TkinterMapView(root, width=800, height=600, corner_radius=0)
+map_widget.pack(side=RIGHT, expand=True, fill=BOTH)
+map_widget.set_position(52.23, 21.0)
+map_widget.set_zoom(6)
+
+root.mainloop()
+
