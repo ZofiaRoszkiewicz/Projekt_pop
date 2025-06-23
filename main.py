@@ -72,3 +72,114 @@ class Osoba:
         except Exception as e:
             print(f"Błąd pobierania współrzędnych dla miasta {self.miasto}: {e}")
             return 52.23, 21.0
+
+class Pracownik(Osoba): pass
+class Klient(Osoba): pass
+
+def pokaz_ksiegarnie():
+    listbox_ksiegarnie.delete(0, END)
+    for i, k in enumerate(ksiegarnie):
+        listbox_ksiegarnie.insert(i, f"{i+1}. {k.nazwa.replace('_', ' ')}")
+
+def pokaz_na_mapie():
+    idx = listbox_ksiegarnie.curselection()
+    if not idx:
+        return
+    ksiegarnia = ksiegarnie[idx[0]]
+    map_widget.set_position(ksiegarnia.latitude, ksiegarnia.longitude)
+    map_widget.set_zoom(13)
+
+def pokaz_wszystkie_ksiegarnie_na_mapie():
+    for k in ksiegarnie:
+        if k.marker:
+            k.marker.delete()
+        k.marker = map_widget.set_marker(k.latitude, k.longitude, text=k.nazwa.replace("_", " "))
+    if ksiegarnie:
+        lat = sum(k.latitude for k in ksiegarnie) / len(ksiegarnie)
+        lon = sum(k.longitude for k in ksiegarnie) / len(ksiegarnie)
+        map_widget.set_position(lat, lon)
+        map_widget.set_zoom(6)
+
+def pokaz_osoby_dla_ksiegarni(typ):
+    idx = listbox_ksiegarnie.curselection()
+    if not idx:
+        return
+    ksiegarnia = ksiegarnie[idx[0]]
+    nazwa = ksiegarnia.nazwa
+    dane = ksiegarnia_pracownicy if typ == "pracownik" else ksiegarnia_klienci
+    osoby = dane.get(nazwa, [])
+    for o in osoby:
+        if o.marker:
+            o.marker.delete()
+        o.marker = map_widget.set_marker(
+            o.latitude,
+            o.longitude,
+            text=f"{o.imie_nazwisko}\n({o.miasto})"
+        )
+    if osoby:
+        lat = sum(o.latitude for o in osoby) / len(osoby)
+        lon = sum(o.longitude for o in osoby) / len(osoby)
+        map_widget.set_position(lat, lon)
+        map_widget.set_zoom(7)
+
+def pokaz_wszystkich_pracownikow():
+    wszystkie = sum(ksiegarnia_pracownicy.values(), [])
+    for o in wszystkie:
+        if o.marker:
+            o.marker.delete()
+        o.marker = map_widget.set_marker(
+            o.latitude,
+            o.longitude,
+            text=f"{o.imie_nazwisko}\n({o.miasto})"
+        )
+    if wszystkie:
+        lat = sum(o.latitude for o in wszystkie) / len(wszystkie)
+        lon = sum(o.longitude for o in wszystkie) / len(wszystkie)
+        map_widget.set_position(lat, lon)
+        map_widget.set_zoom(6)
+
+def pokaz_wszystkich_klientow():
+    wszystkie = sum(ksiegarnia_klienci.values(), [])
+    for o in wszystkie:
+        if o.marker:
+            o.marker.delete()
+        o.marker = map_widget.set_marker(
+            o.latitude,
+            o.longitude,
+            text=f"{o.imie_nazwisko}\n({o.miasto})"
+        )
+    if wszystkie:
+        lat = sum(o.latitude for o in wszystkie) / len(wszystkie)
+        lon = sum(o.longitude for o in wszystkie) / len(wszystkie)
+        map_widget.set_position(lat, lon)
+        map_widget.set_zoom(6)
+
+def dodaj_ksiegarnie_z_listy():
+    nazwa = entry_nazwa.get().strip()
+    if not nazwa or nazwa not in ksiegarnia_coords:
+        return
+    k = Ksiegarnia(nazwa)
+    ksiegarnie.append(k)
+    ksiegarnia_pracownicy[nazwa] = []
+    ksiegarnia_klienci[nazwa] = []
+    pokaz_ksiegarnie()
+    entry_nazwa.delete(0, END)
+
+def usun_ksiegarnie():
+    idx = listbox_ksiegarnie.curselection()
+    if not idx:
+        return
+    i = idx[0]
+    ks = ksiegarnie[i]
+    for p in ksiegarnia_pracownicy.get(ks.nazwa, []):
+        if p.marker:
+            p.marker.delete()
+    for k in ksiegarnia_klienci.get(ks.nazwa, []):
+        if k.marker:
+            k.marker.delete()
+    if ks.marker:
+        ks.marker.delete()
+    ksiegarnie.pop(i)
+    ksiegarnia_pracownicy.pop(ks.nazwa, None)
+    ksiegarnia_klienci.pop(ks.nazwa, None)
+    pokaz_ksiegarnie()
