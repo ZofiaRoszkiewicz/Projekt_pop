@@ -273,3 +273,18 @@ def otworz_panel_osob(nazwa_typu, typ_klasy, baza_danych):
         entry_imie.delete(0, END)
         entry_miasto.delete(0, END)
         button_dodaj.config(text=f"Dodaj {nazwa_typu.lower()}", command=dodaj)
+
+   Label(okno, text="Imię i nazwisko:").pack()
+    entry_imie = Entry(okno, width=40)
+    entry_imie.pack()
+
+    Label(okno, text="Miasto:").pack()
+    entry_miasto = Entry(okno, width=40)
+    entry_miasto.pack()
+
+    button_dodaj = Button(okno, text=f"Dodaj {nazwa_typu.lower()}", command=dodaj)
+    button_dodaj.pack(pady=2)
+    Button(okno, text=f"Usuń {nazwa_typu.lower()}", command=usun).pack(pady=2)
+    Button(okno, text=f"Edytuj {nazwa_typu.lower()}", command=edytuj).pack(pady=2)
+
+    odswiez()
