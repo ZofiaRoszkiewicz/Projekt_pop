@@ -1,3 +1,4 @@
+
 from tkinter import *
 import tkintermapview
 import requests
@@ -183,3 +184,172 @@ def usun_ksiegarnie():
     ksiegarnia_pracownicy.pop(ks.nazwa, None)
     ksiegarnia_klienci.pop(ks.nazwa, None)
     pokaz_ksiegarnie()
+
+def edytuj_ksiegarnie():
+    idx = listbox_ksiegarnie.curselection()
+    if not idx:
+        return
+    i = idx[0]
+    entry_nazwa.delete(0, END)
+    entry_nazwa.insert(0, ksiegarnie[i].nazwa)
+    button_dodaj.config(text="Zapisz", command=lambda: zapisz_edycje(i))
+
+def zapisz_edycje(i):
+    nowa_nazwa = entry_nazwa.get().strip()
+    if not nowa_nazwa:
+        return
+    if ksiegarnie[i].marker:
+        ksiegarnie[i].marker.delete()
+    stara = ksiegarnie[i].nazwa
+    ksiegarnie[i] = Ksiegarnia(nowa_nazwa)
+    ksiegarnia_pracownicy[nowa_nazwa] = ksiegarnia_pracownicy.pop(stara, [])
+    ksiegarnia_klienci[nowa_nazwa] = ksiegarnia_klienci.pop(stara, [])
+    pokaz_ksiegarnie()
+    entry_nazwa.delete(0, END)
+    button_dodaj.config(text="Dodaj księgarnię", command=dodaj_ksiegarnie_z_listy)
+
+def otworz_panel_osob(nazwa_typu, typ_klasy, baza_danych):
+    idx = listbox_ksiegarnie.curselection()
+    if not idx:
+        return
+    ks = ksiegarnie[idx[0]]
+    nazwa_ksiegarni = ks.nazwa
+    if nazwa_ksiegarni not in baza_danych:
+        baza_danych[nazwa_ksiegarni] = []
+
+    okno = Toplevel(root)
+    okno.title(f"{nazwa_typu.capitalize()} – {nazwa_ksiegarni.replace('_', ' ')}")
+    okno.geometry("400x550")
+
+    listbox = Listbox(okno, width=50, height=15)
+    listbox.pack()
+
+    def odswiez():
+        listbox.delete(0, END)
+        for i, o in enumerate(baza_danych[nazwa_ksiegarni]):
+            listbox.insert(i, f"{i+1}. {o.imie_nazwisko} – {o.miasto}")
+
+    def dodaj():
+        imie = entry_imie.get().strip()
+        miasto = entry_miasto.get().strip()
+        if not imie or not miasto:
+            return
+        osoba = typ_klasy(imie, miasto, nazwa_ksiegarni)
+        baza_danych[nazwa_ksiegarni].append(osoba)
+        odswiez()
+        entry_imie.delete(0, END)
+        entry_miasto.delete(0, END)
+
+    def usun():
+        sel = listbox.curselection()
+        if not sel:
+            return
+        o = baza_danych[nazwa_ksiegarni][sel[0]]
+        if o.marker:
+            o.marker.delete()
+        baza_danych[nazwa_ksiegarni].pop(sel[0])
+        odswiez()
+
+    def edytuj():
+        sel = listbox.curselection()
+        if not sel:
+            return
+        o = baza_danych[nazwa_ksiegarni][sel[0]]
+        entry_imie.delete(0, END)
+        entry_imie.insert(0, o.imie_nazwisko)
+        entry_miasto.delete(0, END)
+        entry_miasto.insert(0, o.miasto)
+        button_dodaj.config(text="Zapisz", command=lambda: zapisz(sel[0]))
+
+    def zapisz(i_o):
+        imie = entry_imie.get().strip()
+        miasto = entry_miasto.get().strip()
+        if not imie or not miasto:
+            return
+        o = baza_danych[nazwa_ksiegarni][i_o]
+        if o.marker:
+            o.marker.delete()
+        baza_danych[nazwa_ksiegarni][i_o] = typ_klasy(imie, miasto, nazwa_ksiegarni)
+        odswiez()
+        entry_imie.delete(0, END)
+        entry_miasto.delete(0, END)
+        button_dodaj.config(text=f"Dodaj {nazwa_typu.lower()}", command=dodaj)
+
+    Label(okno, text="Imię i nazwisko:").pack()
+    entry_imie = Entry(okno, width=40)
+    entry_imie.pack()
+
+    Label(okno, text="Miasto:").pack()
+    entry_miasto = Entry(okno, width=40)
+    entry_miasto.pack()
+
+    button_dodaj = Button(okno, text=f"Dodaj {nazwa_typu.lower()}", command=dodaj)
+    button_dodaj.pack(pady=2)
+    Button(okno, text=f"Usuń {nazwa_typu.lower()}", command=usun).pack(pady=2)
+    Button(okno, text=f"Edytuj {nazwa_typu.lower()}", command=edytuj).pack(pady=2)
+
+    odswiez()
+
+def pokaz_liste_dostepnych_ksiegarni():
+    okno = Toplevel(root)
+    okno.title("Dostępne księgarnie do dodania")
+    okno.geometry("400x400")
+
+    listbox = Listbox(okno, selectmode=MULTIPLE, width=50)
+    listbox.pack(pady=10, padx=10, expand=True, fill=BOTH)
+
+    for nazwa in ksiegarnia_coords.keys():
+        listbox.insert(END, nazwa)
+
+    def dodaj_zaznaczone():
+        wybrane = listbox.curselection()
+        for idx in wybrane:
+            nazwa = listbox.get(idx)
+            if nazwa not in [k.nazwa for k in ksiegarnie]:
+                k = Ksiegarnia(nazwa)
+                ksiegarnie.append(k)
+                ksiegarnia_pracownicy[nazwa] = []
+                ksiegarnia_klienci[nazwa] = []
+        pokaz_ksiegarnie()
+        okno.destroy()
+
+    Button(okno, text="Dodaj zaznaczone", command=dodaj_zaznaczone).pack(pady=10)
+
+
+#okna zarządzania
+root = Tk()
+root.title("Projekt systemu do zarządzania siecią księgarni i ich ofertą")
+root.geometry("1200x750")
+
+ramka_lista = Frame(root)
+ramka_lista.pack(side=LEFT, fill=Y, padx=10, pady=10)
+
+Label(ramka_lista, text="Lista księgarni").pack()
+listbox_ksiegarnie = Listbox(ramka_lista, width=40, height=20)
+listbox_ksiegarnie.pack()
+
+
+Button(ramka_lista, text="Wybierz z listy dostępnych księgarni", command=pokaz_liste_dostepnych_ksiegarni).pack(pady=2)
+Button(ramka_lista, text="Pokaż na mapie", command=pokaz_na_mapie).pack(pady=2)
+Button(ramka_lista, text="Pokaż wszystkie księgarnie", command=pokaz_wszystkie_ksiegarnie_na_mapie).pack(pady=2)
+Button(ramka_lista, text="Pracownicy", command=lambda: otworz_panel_osob("pracownik", Pracownik, ksiegarnia_pracownicy)).pack(pady=2)
+Button(ramka_lista, text="Klienci", command=lambda: otworz_panel_osob("klient", Klient, ksiegarnia_klienci)).pack(pady=2)
+Button(ramka_lista, text="Pokaż wszystkich pracowników", command=pokaz_wszystkich_pracownikow).pack(pady=2)
+Button(ramka_lista, text="Pokaż wszystkich klientów", command=pokaz_wszystkich_klientow).pack(pady=2)
+Button(ramka_lista, text="Usuń księgarnię", command=usun_ksiegarnie).pack(pady=2)
+
+Label(ramka_lista, text="Edytuj księgarnię").pack(pady=5)
+entry_nazwa = Entry(ramka_lista, width=40)
+entry_nazwa.pack()
+button_dodaj = Button(ramka_lista, text="Zapisz zmiany", command=dodaj_ksiegarnie_z_listy)
+button_dodaj.pack(pady=5)
+
+
+
+map_widget = tkintermapview.TkinterMapView(root, width=800, height=600, corner_radius=0)
+map_widget.pack(side=RIGHT, expand=True, fill=BOTH)
+map_widget.set_position(52.23, 21.0)
+map_widget.set_zoom(6)
+
+root.mainloop()
+
