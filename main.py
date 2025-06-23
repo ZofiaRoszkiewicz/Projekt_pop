@@ -72,3 +72,30 @@ class Osoba:
         except Exception as e:
             print(f"Błąd pobierania współrzędnych dla miasta {self.miasto}: {e}")
             return 52.23, 21.0
+
+class Pracownik(Osoba): pass
+class Klient(Osoba): pass
+
+def pokaz_ksiegarnie():
+    listbox_ksiegarnie.delete(0, END)
+    for i, k in enumerate(ksiegarnie):
+        listbox_ksiegarnie.insert(i, f"{i+1}. {k.nazwa.replace('_', ' ')}")
+
+def pokaz_na_mapie():
+    idx = listbox_ksiegarnie.curselection()
+    if not idx:
+        return
+    ksiegarnia = ksiegarnie[idx[0]]
+    map_widget.set_position(ksiegarnia.latitude, ksiegarnia.longitude)
+    map_widget.set_zoom(13)
+
+def pokaz_wszystkie_ksiegarnie_na_mapie():
+    for k in ksiegarnie:
+        if k.marker:
+            k.marker.delete()
+        k.marker = map_widget.set_marker(k.latitude, k.longitude, text=k.nazwa.replace("_", " "))
+    if ksiegarnie:
+        lat = sum(k.latitude for k in ksiegarnie) / len(ksiegarnie)
+        lon = sum(k.longitude for k in ksiegarnie) / len(ksiegarnie)
+        map_widget.set_position(lat, lon)
+        map_widget.set_zoom(6)
